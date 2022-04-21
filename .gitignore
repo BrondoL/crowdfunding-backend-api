@@ -21,3 +21,7 @@
 go.work
 
 /.idea
+!/public
+!/public/images
+!/public/images/avatars
+/public/images/avatars/*
