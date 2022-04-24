@@ -1,7 +1,10 @@
 package campaign
 
+import "errors"
+
 type Service interface {
 	GetCampaigns(id int) ([]Campaign, error)
+	GetCampaignById(input GetCampaignDetailInput) (Campaign, error)
 }
 
 type service struct {
@@ -26,4 +29,15 @@ func (s *service) GetCampaigns(id int) ([]Campaign, error) {
 		return campaigns, err
 	}
 	return campaigns, nil
+}
+
+func (s *service) GetCampaignById(input GetCampaignDetailInput) (Campaign, error) {
+	campaign, err := s.repository.FindById(input.ID)
+	if err != nil {
+		return campaign, err
+	}
+	if campaign.ID == 0 {
+		return campaign, errors.New("user not found")
+	}
+	return campaign, nil
 }
