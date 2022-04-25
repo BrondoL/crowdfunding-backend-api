@@ -3,6 +3,7 @@ package handler
 import (
 	"crowdfunding/campaign"
 	"crowdfunding/helper"
+	"crowdfunding/user"
 	"net/http"
 	"strconv"
 
@@ -59,4 +60,31 @@ func (h *campaignHandler) GetCampaign(c *gin.Context) {
 	formatter := campaign.FormatCampaignDetail(campaignDetail)
 	response := helper.APIResponse("Campaign retrieved successfully", http.StatusOK, "success", formatter)
 	c.JSON(http.StatusOK, response)
+}
+
+func (h *campaignHandler) CreateCampaign(c *gin.Context) {
+	var input campaign.CreateCampaignInput
+
+	err := c.ShouldBindJSON(&input)
+	if err != nil {
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+		response := helper.APIResponse("Error to create campaign", http.StatusBadRequest, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+	currentUser := c.MustGet("user").(user.User)
+	input.User = currentUser
+
+	newCampaign, err := h.service.CreateCampaign(input)
+	if err != nil {
+		errorMessage := gin.H{"errors": err.Error()}
+		response := helper.APIResponse("Error to create campaign", http.StatusBadRequest, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	formatter := campaign.FormatCampaign(newCampaign)
+	response := helper.APIResponse("Campaign created successfully", http.StatusCreated, "success", formatter)
+	c.JSON(http.StatusCreated, response)
 }

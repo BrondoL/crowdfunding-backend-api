@@ -1,6 +1,9 @@
 package helper
 
 import (
+	"errors"
+	"io"
+
 	"github.com/go-playground/validator/v10"
 )
 
@@ -27,10 +30,13 @@ func APIResponse(message string, code int, status string, data interface{}) Resp
 }
 
 func FormatValidationError(err error) []string {
-	var errors []string
-	for _, err := range err.(validator.ValidationErrors) {
-		errors = append(errors, err.Field()+" "+err.Tag())
-	}
+	var errorMessage []string
 
-	return errors
+	if !errors.Is(err, io.EOF) {
+		for _, e := range err.(validator.ValidationErrors) {
+			errorMessage = append(errorMessage, e.Field()+" "+e.Tag())
+		}
+		return errorMessage
+	}
+	return []string{"No Data Found"}
 }
